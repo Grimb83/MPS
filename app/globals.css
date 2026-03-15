@@ -51,10 +51,11 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Optional: Selection color matching Primary */
-    selection: {
-      background-color: hsla(var(--primary) / 0.3);
-      color: hsl(var(--primary-foreground));
-    }
+  }
+  
+  /* Selection color matching Primary */
+  ::selection {
+    background-color: hsla(var(--primary) / 0.3);
+    color: hsl(var(--primary-foreground));
   }
 }
