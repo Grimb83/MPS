@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Linear Dark Theme Tokens */
+    --background: 240 5% 4%; /* #0c0c0d */
+    --foreground: 210 2% 90%; /* text-white/90 */
+
+    --card: 240 4% 9%; /* #161618 */
+    --card-foreground: 210 2% 90%;
+
+    --popover: 240 4% 9%;
+    --popover-foreground: 210 2% 90%;
+
+    --primary: 234 60% 60%; /* #5e6ad2 (Linear Blue) */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 240 4% 16%; /* #28282a */
+    --secondary-foreground: 210 4% 60%; /* #8a8d91 */
+
+    --muted: 240 4% 16%;
+    --muted-foreground: 210 4% 60%; /* #8a8d91 */
+
+    --accent: 240 4% 16%;
+    --accent-foreground: 210 4% 98%;
+
+    --destructive: 18 89% 54%; /* #f26522 */
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142.1 70.6% 45.3%; /* #4caf50 */
+    --success-foreground: 210 40% 98%;
+
+    --border: 240 4% 16%; /* #28282a */
+    --input: 240 4% 16%;
+    --ring: 234 60% 60%;
+
+    /* Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    --radius: 0.5rem; /* Default */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Optional: Selection color matching Primary */
+    selection: {
+      background-color: hsla(var(--primary) / 0.3);
+      color: hsl(var(--primary-foreground));
+    }
+  }
+}
