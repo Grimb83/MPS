@@ -1,8 +1,30 @@
 import crypto from 'crypto';
+import { Task, TaskStatus } from './types';
 
 /**
- * Sheet Gantt Manager - Google Sheets REST API Utility (v1.5.8)
+ * MPS Mock Data for Local Development
  */
+const MOCK_TASKS: Task[] = [
+  { id: "T-01", name: "실제 데이터 연동 확인 필요", status: "진행", start: "2026-03-12", end: "2026-03-25", progress: 45, assignee: "Param", issues: "시트 권한 또는 ID를 확인해주세요", resolution: "-" },
+  { id: "T-02", name: "디자인 시스템 고도화", status: "보류", start: "2026-03-15", end: "2026-03-20", progress: 10, assignee: "Designer", issues: "추가 아이콘 필요", resolution: "진행 중" }
+];
+
+const mapRowToTask = (row: any[]): Task => {
+  const status = (row[2] as TaskStatus);
+  const validStatuses: TaskStatus[] = ["진행", "지연", "보류", "완료", "취소"];
+  
+  return {
+    id: row[0] || "",
+    name: row[1] || "",
+    status: validStatuses.includes(status) ? status : "진행",
+    start: row[3] || "",
+    end: row[4] || "",
+    progress: parseInt(row[5]) || 0,
+    assignee: row[6] || "",
+    issues: row[7] || "-",
+    resolution: row[8] || "-"
+  };
+};
 
 async function getAccessToken(email: string, privateKey: string) {
   try {
@@ -59,18 +81,13 @@ async function getSheetIds(accessToken: string, spreadsheetId: string) {
   return mapping;
 }
 
-export async function fetchSheetData(range: string) {
+export async function fetchSheetData(range: string): Promise<{ tasks: Task[]; debug: string }> {
   const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   const CLIENT_EMAIL = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
   const PRIVATE_KEY = process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-  const mockData = [
-    ["T-01", "실제 데이터 연동 확인 필요", "진행", "2026-03-12", "2026-03-25", "45", "Param", "시트 권한 또는 ID를 확인해주세요", "-"],
-    ["T-02", "디자인 시스템 고도화", "보류", "2026-03-15", "2026-03-20", "10", "Designer", "추가 아이콘 필요", "진행 중"]
-  ];
-
   if (!SPREADSHEET_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
-    return { values: mockData, debug: "환경 변수 누락" };
+    return { tasks: MOCK_TASKS, debug: "환경 변수 누락 (Mock 사용)" };
   }
 
   try {
@@ -83,10 +100,14 @@ export async function fetchSheetData(range: string) {
     });
 
     const data = await response.json();
-    if (data.error) return { values: mockData, debug: `API Error: ${data.error.message}` };
-    return { ...data, debug: "Success" };
+    if (data.error) return { tasks: MOCK_TASKS, debug: `API Error: ${data.error.message} (Mock 사용)` };
+    
+    const rows = data.values || [];
+    const tasks = rows.slice(1).map(mapRowToTask); // 헤더 제외 매핑
+    
+    return { tasks, debug: "Success" };
   } catch (error: any) {
-    return { values: mockData, debug: `Exception: ${error.message}` };
+    return { tasks: MOCK_TASKS, debug: `Exception: ${error.message} (Mock 사용)` };
   }
 }
 

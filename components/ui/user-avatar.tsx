@@ -3,10 +3,11 @@
 import React from 'react'
 import { cn } from "@/lib/utils"
 import { getAssigneeColor } from "@/lib/system-utils"
+import { TaskStatus } from "@/lib/types"
 
 interface UserAvatarProps {
   name: string;
-  status?: string;
+  status?: TaskStatus;
   className?: string;
 }
 

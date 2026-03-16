@@ -4,11 +4,12 @@
  */
 
 import { cn } from "@/lib/utils";
+import { Task, TaskStatus } from "./types";
 
 /**
  * 종료일과 현재 날짜를 비교하여 D-Day를 계산합니다.
  */
-export const calculateDDay = (endDate: string, status: string): number | null => {
+export const calculateDDay = (endDate: string, status: TaskStatus): number | null => {
   if (status === '완료' || status === '취소' || !endDate || endDate === '-') return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -45,7 +46,7 @@ let nextColorIndex = 0;
  * 담당자 이름을 기반으로 고유한 색상 객체를 반환합니다. 
  * (알고리즘 없이, 한글 이름 자체를 그대로 기억하여 순서대로 색상 배정)
  */
-export const getAssigneeColor = (name: string) => {
+export const getAssigneeColor = (name: Task['assignee']) => {
   const str = name.trim();
   if (str.length === 0) return styles[0];
 
@@ -63,13 +64,16 @@ export const getAssigneeColor = (name: string) => {
 /**
  * 상태별 테마 토큰을 반환합니다.
  */
-export const getStatusTheme = (status: string) => {
-  const themes = {
-    "진행": { color: "bg-primary", text: "text-primary", border: "border-primary/30", rowBg: "hover:bg-primary/5" },
-    "지연": { color: "bg-destructive", text: "text-destructive", border: "border-destructive/30", rowBg: "hover:bg-destructive/5" },
-    "보류": { color: "bg-muted-foreground", text: "text-muted-foreground", border: "border-muted-foreground/30", rowBg: "hover:bg-muted-foreground/5" },
-    "완료": { color: "bg-success", text: "text-success", border: "border-success/30", rowBg: "hover:bg-success/5" },
-    "취소": { color: "bg-muted", text: "text-muted-foreground", border: "border-muted", rowBg: "hover:bg-white/2" },
+export const getStatusTheme = (status: TaskStatus) => {
+  const themes: Record<TaskStatus, { color: string; text: string; border: string; rowBg: string }> = {
+    "진행": { color: "bg-primary", text: "text-primary", border: "border-primary/30", rowBg: "hover:bg-primary/10" },
+    "지연": { color: "bg-destructive", text: "text-destructive", border: "border-destructive/30", rowBg: "hover:bg-destructive/10" },
+    "보류": { color: "bg-muted-foreground", text: "text-muted-foreground", border: "border-muted-foreground/30", rowBg: "hover:bg-muted-foreground/10" },
+    "완료": { color: "bg-success", text: "text-success", border: "border-success/30", rowBg: "hover:bg-success/10" },
+    "취소": { color: "bg-muted", text: "text-muted-foreground", border: "border-muted", rowBg: "hover:bg-white/5" },
   };
-  return themes[status as keyof typeof themes] || themes["진행"];
+  
+  // 런타임에서 status가 정의되지 않았거나 유효하지 않은 경우 "진행" 테마를 기본값으로 사용
+  const safeStatus = (status && themes[status]) ? status : "진행";
+  return themes[safeStatus];
 };

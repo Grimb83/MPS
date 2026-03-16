@@ -2,17 +2,9 @@
 
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, CalendarDays } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { getAssigneeColor } from "@/lib/system-utils";
-
-interface Task {
-  id: string;
-  name: string;
-  status: string;
-  issues: string;
-  assignee: string;
-  progress: number;
-}
+import { Task } from "@/lib/types";
 
 interface DashboardWidgetsProps {
   tasks: Task[];
@@ -22,9 +14,10 @@ interface DashboardWidgetsProps {
 export function DashboardWidgets({ tasks, onAssigneeClick }: DashboardWidgetsProps) {
   // 날짜 계산 (서버와 클라이언트 일치를 위해 고정된 포맷 사용)
   const today = new Date();
-  const dateString = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일(${today.toLocaleDateString('ko-KR', { weekday: 'short' })})`;
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+  const dateString = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (${weekDays[today.getDay()]})`;
 
-  // useMemo를 통한 불필요한 재계산 방지 (성능 최적화)
+  // useMemo를 통한 불필요한 통계 계산 방지 (성능 최적화)
   const resourceData = useMemo(() => {
     return Array.from(new Set(tasks.map((t) => t.assignee))).map((assignee) => {
       const userTasks = tasks.filter((t) => t.assignee === assignee);
@@ -84,7 +77,7 @@ export function DashboardWidgets({ tasks, onAssigneeClick }: DashboardWidgetsPro
                   >
                     {res.name}
                     <span className="opacity-50 text-[10px] font-medium ml-1">
-                      ({res.count}건)
+                      ({res.count}개)
                     </span>
                   </div>
                   <span className="text-[11px] font-bold text-primary tabular-nums">
@@ -127,7 +120,7 @@ export function DashboardWidgets({ tasks, onAssigneeClick }: DashboardWidgetsPro
             </CardTitle>
           </div>
 
-          {/* 3. 하단 상태 요약 수치 영역 */}
+          {/* 3. 상단 상태 요약 수치 영역 */}
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider">
               <span className="text-muted-foreground">진행</span>

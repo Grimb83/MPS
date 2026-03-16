@@ -3,12 +3,12 @@ import { fetchSheetData } from "@/lib/google-sheets";
 import { LayoutGrid, AlertCircle, ShieldCheck, Sparkles } from "lucide-react";
 
 export default async function Home() {
-  let values = [];
+  let tasks = [];
   let debug = "Initializing...";
 
   try {
     const sheetResponse = await fetchSheetData("Gantt!A2:I100");
-    values = sheetResponse?.values || [];
+    tasks = sheetResponse?.tasks || [];
     debug = sheetResponse?.debug || "No debug info";
   } catch (e: any) {
     debug = `Fatal Error: ${e.message}`;
@@ -76,7 +76,7 @@ export default async function Home() {
 
         {/* 메인 간트 차트 영역 */}
         <main className="animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out">
-          <GanttChart initialData={values} />
+          <GanttChart initialData={tasks} />
         </main>
 
         {/* 심플 푸터 */}

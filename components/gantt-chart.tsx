@@ -16,19 +16,9 @@ import { DashboardWidgets } from "./dashboard-widgets";
 import { TaskTable } from "./task-table";
 import { TaskModal } from "./task-modal";
 
-interface Task {
-  id: string;
-  name: string;
-  status: string;
-  start: string;
-  end: string;
-  progress: number;
-  assignee: string;
-  issues: string;
-  resolution: string;
-}
+import { Task } from "@/lib/types";
 
-export function GanttChart({ initialData }: { initialData: any[] }) {
+export function GanttChart({ initialData }: { initialData: Task[] }) {
   const [isPending, startTransition] = useTransition();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("전체");
@@ -38,19 +28,7 @@ export function GanttChart({ initialData }: { initialData: any[] }) {
   const [activeTask, setActiveTask] = useState<Partial<Task>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  const allTasks: Task[] = (initialData || [])
-    .filter((row) => row && row.length >= 6)
-    .map((row) => ({
-      id: String(row[0] || ""),
-      name: String(row[1] || "이름 없는 과업"),
-      status: String(row[2] || "진행"),
-      start: String(row[3] || "-"),
-      end: String(row[4] || "-"),
-      progress: parseInt(String(row[5] || "0"), 10) || 0,
-      assignee: String(row[6] || "-"),
-      issues: String(row[7] || "-"),
-      resolution: String(row[8] || "-"),
-    }));
+  const allTasks = initialData || [];
 
   const [optimisticTasks, setOptimisticTasks] = useOptimistic(
     allTasks,
@@ -116,18 +94,7 @@ export function GanttChart({ initialData }: { initialData: any[] }) {
       startTransition(async () => {
         setOptimisticTasks({ type: "add", task: taskToAdd });
         closeModal();
-        const rowData = [
-          taskToAdd.id,
-          taskToAdd.name,
-          taskToAdd.status,
-          taskToAdd.start,
-          taskToAdd.end,
-          taskToAdd.progress,
-          taskToAdd.assignee,
-          taskToAdd.issues,
-          taskToAdd.resolution,
-        ];
-        const result = await createTaskAction(rowData);
+        const result = await createTaskAction(taskToAdd);
         if (!result.success) alert(`추가 실패: ${result.error}`);
       });
     } else {
@@ -139,19 +106,8 @@ export function GanttChart({ initialData }: { initialData: any[] }) {
           setOptimisticTasks({ type: "update", task: taskToUpdate });
         }
         closeModal();
-        const rowData = [
-          taskToUpdate.id,
-          taskToUpdate.name,
-          taskToUpdate.status,
-          taskToUpdate.start,
-          taskToUpdate.end,
-          taskToUpdate.progress,
-          taskToUpdate.assignee,
-          taskToUpdate.issues,
-          taskToUpdate.resolution,
-        ];
-        const result = await updateTaskAction(taskToUpdate.id, rowData);
-        if (!result.success) alert(`저장 실패: ${result.error}`);
+        const result = await updateTaskAction(taskToUpdate);
+        if (!result.success) alert(`수정 실패: ${result.error}`);
       });
     }
   };
@@ -169,7 +125,6 @@ export function GanttChart({ initialData }: { initialData: any[] }) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-1000">
-      {/* 1. 모달 컴포넌트 */}
       <TaskModal
         isOpen={isModalOpen}
         mode={modalMode}
@@ -181,40 +136,25 @@ export function GanttChart({ initialData }: { initialData: any[] }) {
         onDelete={handleDeleteTask}
       />
 
-      {/* 2. 대시보드 위젯 컴포넌트 */}
       <DashboardWidgets 
         tasks={optimisticTasks} 
         onAssigneeClick={(assignee) => {
           setSearchTerm(assignee);
-          // 상태 필터를 전체로 초기화하여 해당 담당자의 모든 과업이 보이도록 함
           setStatusFilter("전체"); 
         }} 
       />
 
-      {/* 3. 컨트롤 바 */}
-      <div
-        className="flex flex-col md:flex-row gap-6 items-center"
-        role="search"
-        aria-label="과업 필터링 및 검색"
-      >
+      <div className="flex flex-col md:flex-row gap-6 items-center">
         <div className="relative flex-1 w-full">
-          <Search
-            className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors"
-            aria-hidden="true"
-          />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="과업 또는 담당자 검색..."
-            className="h-14 pl-14 border-border focus:border-primary/50 bg-card text-foreground rounded-2xl font-medium shadow-2xl transition-all placeholder:text-muted-foreground"
+            placeholder="과업 또는 담당자 검색.."
+            className="h-14 pl-14 border-border focus:border-primary/50 bg-card rounded-2xl font-medium shadow-2xl"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="과업 검색어 입력"
           />
         </div>
-        <div
-          className="flex items-center gap-2 bg-card p-1.5 rounded-2xl border border-border shadow-2xl"
-          role="group"
-          aria-label="상태 필터"
-        >
+        <div className="flex items-center gap-2 bg-card p-1.5 rounded-2xl border border-border shadow-2xl">
           {["전체", "진행", "지연", "보류"].map((status) => (
             <Button
               key={status}
@@ -222,14 +162,11 @@ export function GanttChart({ initialData }: { initialData: any[] }) {
               size="sm"
               onClick={() => {
                 setStatusFilter(status);
-                setSearchTerm(""); // 상태 필터 클릭 시 검색어(담당자 등) 초기화
+                setSearchTerm(""); 
               }}
-              aria-pressed={statusFilter === status}
               className={cn(
-                "rounded-xl px-6 text-xs font-bold h-11 transition-all uppercase tracking-wider",
-                statusFilter === status
-                  ? "bg-primary text-primary-foreground shadow-lg"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5",
+                "rounded-xl px-6 text-xs font-bold h-11 uppercase tracking-wider",
+                statusFilter === status ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground"
               )}
             >
               {status}
@@ -237,15 +174,13 @@ export function GanttChart({ initialData }: { initialData: any[] }) {
           ))}
         </div>
         <Button
-          className="w-full md:w-auto gap-3 h-14 px-10 font-bold rounded-2xl transition-all active:scale-95 bg-foreground text-background hover:bg-foreground/90 shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+          className="w-full md:w-auto gap-3 h-14 px-10 font-bold rounded-2xl bg-foreground text-background"
           onClick={openAddModal}
-          aria-haspopup="dialog"
         >
-          <Plus className="w-4 h-4" aria-hidden="true" /> 새 과업 등록
+          <Plus className="w-4 h-4" /> 새 과업 등록
         </Button>
       </div>
 
-      {/* 4. 테이블 컴포넌트 */}
       <TaskTable
         tasks={filteredTasks}
         expandedRows={expandedRows}

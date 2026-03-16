@@ -5,18 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Layers, X, Users, Siren, Lightbulb, Trash2, Loader2, CheckCircle2 } from "lucide-react"
 import { ProgressSlider } from "@/components/ui/progress-slider"
-
-interface Task {
-  id: string
-  name: string
-  status: string
-  start: string
-  end: string
-  progress: number
-  assignee: string
-  issues: string
-  resolution: string
-}
+import { Task } from "@/lib/types"
 
 interface TaskModalProps {
   isOpen: boolean;

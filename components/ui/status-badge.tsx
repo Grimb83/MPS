@@ -3,14 +3,15 @@
 import React from 'react'
 import { cn } from "@/lib/utils"
 import { getStatusTheme } from "@/lib/system-utils"
-import { AlertTriangle, CheckCircle2, Clock, PauseCircle, XCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Clock, PauseCircle, XCircle, LucideIcon } from "lucide-react"
+import { TaskStatus } from "@/lib/types"
 
 interface StatusBadgeProps {
-  status: string;
+  status: TaskStatus;
   className?: string;
 }
 
-const statusIcons = {
+const statusIcons: Record<TaskStatus, LucideIcon> = {
   "진행": Clock,
   "지연": AlertTriangle,
   "보류": PauseCircle,
@@ -23,7 +24,9 @@ const statusIcons = {
  */
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const theme = getStatusTheme(status);
-  const Icon = statusIcons[status as keyof typeof statusIcons] || Clock;
+  
+  // 런타임 방어 코드: statusIcons에 없는 상태가 들어올 경우 Clock 아이콘을 기본값으로 사용
+  const Icon = (status && statusIcons[status]) ? statusIcons[status] : Clock;
 
   return (
     <div className={cn(
@@ -37,7 +40,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       className
     )}>
       <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-      <span className="whitespace-nowrap">{status}</span>
+      <span className="whitespace-nowrap">{status || "진행"}</span>
     </div>
   )
 }
